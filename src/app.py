@@ -3,6 +3,7 @@ app.py — Guide.Analyst | Entry point principale
 Dark Esports Luxury UI — Flet native desktop app
 """
 import flet as ft
+from core.config import is_safe_mode, load_settings, get_env, get_riot_region
 from views.dashboard       import build_dashboard
 from views.summoner_search import build_summoner_search
 from views.team_builder    import build_team_builder
@@ -199,7 +200,6 @@ def main(page: ft.Page):
 
 if __name__ == "__main__":
     import os
-    from core.config import is_safe_mode
     
     # Se la Safe Mode è attiva, forza il renderer software (evita flickering GPU)
     if is_safe_mode():
