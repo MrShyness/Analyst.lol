@@ -212,6 +212,8 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
     ft.app_bar = None # Clear any app bar
     
     # Auto-refresh on build
-    page.run_task(lambda: refresh_ui())
+    async def _refresh():
+        refresh_ui()
+    page.run_task(_refresh)
 
     return ft.Container(content=layout, padding=30, expand=True)
