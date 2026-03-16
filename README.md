@@ -72,3 +72,4 @@ Analyst.lol/
 *Guide.Analyst - Professional LoL Analytics Suite*  
 *Dark Esports Luxury Design*  
 *Built with ❤️ for LoL players*
+"# Analyst.lol" 
