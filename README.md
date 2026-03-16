@@ -1,77 +1,42 @@
-# 🎮 Guide.Analyst - Professional LoL Analytics Suite
+# 🎮 Guide.Analyst — Professional LoL Analytics Suite
 
-## 📁 Struttura Finale
-```
+Professional Flet-based analytics application for League of Legends, featuring real-time data integration, advanced benchmarking, and an esports-luxury design.
+
+![Guide.Analyst Dashboard](https://github.com/MrShyness/Analyst.lol/raw/main/brain/dashboard_preview.png)
+
+## ✨ Features
+- **📊 Statistical Benchmarking**: Side-by-side comparison of any summoner with pro players like Faker, Caps, and more.
+- **👥 Advanced Team Builder**: Professional draft-mode interface with official role iconography and synergy forecasting.
+- **🔍 Multi-Summoner Search**: Analyze multiple accounts simultaneously with detailed KDA and mastery metrics.
+- **🧠 Agentic Console**: Monitor real-time synchronization and project states.
+- **💎 Validated Design**: Native Glassmorphism, smooth animations, and premium esports aesthetics.
+
+## 📁 Project Structure
+```text
 Analyst.lol/
-├── 🎮 Guide.Analyst.Unified.exe  # Software completo (68MB)
-├── 🚀 START_UNIFIED.bat        # Launcher automatico
-├── 📚 README.md                # Questa guida
-└── 📋 README_EXECUTABLE.md     # Guida tecnica
+├── Guide.Analyst.py      # Main entry point (Launcher)
+├── src/                  # Application source code
+│   ├── app.py            # Navigation & Core UI
+│   ├── core/             # API Integration & Logic
+│   └── views/            # Functional UI modules
+├── .env                  # Configuration (Managed via Settings UI)
+└── .gitignore            # Git exclusion rules
 ```
 
-## 🚀 Avvio Rapido
+## 🚀 Quick Start
+1. **Requirements**: Python 3.9+ and Flet.
+2. **Launch**:
+   ```bash
+   python Guide.Analyst.py
+   ```
+3. **Setup**: Go to the **Settings (⚙️)** view inside the app to configure your `RIOT_API_KEY`.
 
-### **Metodo 1: Launcher Automatico**
-```bash
-# Doppio click su START_UNIFIED.bat
-```
-
-### **Metodo 2: Esecuzione Diretta**
-```bash
-# Doppio click su Guide.Analyst.Unified.exe
-```
-
-## 🎯 Caratteristiche
-
-### **🖥️ Modalità Desktop**
-- Applicazione nativa con interfaccia Tkinter
-- Team Builder con role-based selection
-- Quick Batch con 300+ pro players
-- Particle background animations
-- Dark Esports Luxury design
-
-### **🌐 Modalità Web Server**
-- Server Flask integrato
-- Browser auto-launch
-- API endpoints per dati
-- Interface HTML responsive
-
-### **📄 Modalità Static HTML**
-- Single file HTML export
-- Grafiche spettacolari
-- Chart.js animations
-- Mobile responsive
-
-## 📊 Funzionalità Principali
-
-- **🔍 Multi Summoner Search** - Analisi batch
-- **👥 Team Builder** - Costruisci team bilanciati
-- **📈 Advanced Charts** - Statistiche professionali
-- **🎨 Dark Esports UI** - Design premium
-- **⚡ Particle Effects** - Animazioni fluide
-- **📱 Responsive** - Desktop e mobile
-
-## 🛠️ Specifiche Tecniche
-
-- **Linguaggio:** Python 3.13
-- **Framework:** Tkinter + Flask
-- **Grafiche:** Chart.js + Matplotlib
-- **Design:** Dark Esports Luxury
-- **Size:** 68MB (single executable)
-- **Dipendenze:** Nessuna (standalone)
-
-## 🎮 Come Usare
-
-1. **Avvia il software** con START_UNIFIED.bat
-2. **Scegli la modalità** (Desktop/Web/Static)
-3. **Usa le funzionalità** di analytics
-4. **Esporta i dati** in formato desiderato
+## 🛠️ Technology Stack
+- **UI Framework**: Flet (Flutter for Python)
+- **API**: Riot Games Official API (CommunityDragon / DataDragon)
+- **Design**: Esports Luxury Glassmorphism
+- **Visualization**: Specialized metrics and custom sparklines
 
 ---
-
-*Guide.Analyst - Professional LoL Analytics Suite*  
-*Dark Esports Luxury Design*  
-*Built with ❤️ for LoL players*
-"# Analyst.lol" 
-"# Analyst.lol" 
-"# Analyst.lol" 
+*Developed for professional players and analysts.*
+*Built with ❤️ for the LoL Community.*
