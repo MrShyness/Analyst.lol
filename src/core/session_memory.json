@@ -1,0 +1,56 @@
+{
+    "session_id": "66b86ec3-9f43-4c7b-991a-26e955806e9e",
+    "basal_knowledge": {
+        "ui_design": {
+            "name": "Dark Esports Luxury",
+            "tokens": {
+                "gold": "#C89B3C",
+                "gold_alt": "#E8C96C",
+                "bg": "#080D18",
+                "surface": "#0F1629",
+                "card": "#172135",
+                "card_hover": "#1E2A40",
+                "cyan": "#00C8FF",
+                "green": "#00D4A0",
+                "red": "#FF4455",
+                "border": "#1E2D47"
+            },
+            "patterns": [
+                "Glassmorphism (15% opacity)",
+                "Smooth hover animations",
+                "Official LoL Role Icons"
+            ]
+        },
+        "verified_accounts": {
+            "Faker": "Hide on bush#61151",
+            "Chovy": "Chovy#KR1",
+            "Caps": "G2 Caps#1323",
+            "Bin": "BLGBin ge#EUW",
+            "ShowMaker": "Syndra#0722",
+            "Gumayusi": "T1 Gumayusi#KR1",
+            "Mikyx": "Billy Butcher#Mikyx",
+            "Hans Sama": "G2 Hans Sama#12838",
+            "Keria": "역천괴#KR1",
+            "Lehends": "Lehends#원숭이",
+            "Rekkles": "Rekkles#1996",
+            "Perkz": "Perkz#91636"
+        },
+        "architectural_decisions": {
+            "navigation": "Parametric Deep Linking (navigate(idx, **kwargs))",
+            "sync_logic": "Fuzzy Matching (Threshold 0.85)",
+            "external_sources": [
+                "trackingthepros.com",
+                "op.gg",
+                "lolpros.gg",
+                "probuildstats.com",
+                "dpm.lol"
+            ],
+            "tech_stack": "Flet 0.82+, Riot DataDragon, Python 3.13"
+        }
+    },
+    "sync_status": {
+        "last_index": 312,
+        "history": [],
+        "conflicts": []
+    }
+}
