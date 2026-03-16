@@ -25,9 +25,10 @@ RED     = "#FF4455"
 TEXT    = "#ECF0F6"
 MUTED   = "#667A99"
 BORDER  = "#1E2D47"
-GLASS   = "#101828CC" # Semi-transparent for glassmorphism
+GLASS   = "#101828CC" 
 GLASS_BORDER = "#C89B3C33"
 BLUR    = 20
+SPACING = 8
 
 NAV_ITEMS = [
     ("🏠", "Dashboard",    build_dashboard),
@@ -102,9 +103,11 @@ def main(page: ft.Page):
             is_active = (current_index["value"] == idx)
             if e.data == "true":
                 e.control.bgcolor = f"{GOLD}18" if is_active else f"{GOLD}0D"
+                e.control.scale = 1.02
             else:
                 e.control.bgcolor = f"{GOLD}18" if is_active else "transparent"
-            page.update()
+                e.control.scale = 1.0
+            e.control.update()
 
         btn = ft.Container(
             content=ft.Row([
@@ -139,7 +142,7 @@ def main(page: ft.Page):
             ft.Text("Guide", size=10, color=MUTED),
             ft.Text("Analyst", size=10, color=GOLD, weight=ft.FontWeight.BOLD),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=2),
-        padding=ft.Padding.symmetric(vertical=20, horizontal=16),
+        padding=ft.Padding.symmetric(vertical=SPACING*2.5, horizontal=SPACING*2),
     )
 
     # Nav buttons

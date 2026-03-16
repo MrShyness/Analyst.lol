@@ -12,7 +12,8 @@ BG = "#080D18"; SURFACE = "#0F1629"; CARD = "#172135"; CARD2 = "#1E2A40"
 GOLD = "#C89B3C"; CYAN = "#00C8FF"; GREEN = "#00D4A0"; RED = "#FF4455"
 TEXT = "#ECF0F6"; MUTED = "#667A99"; BORDER = "#1E2D47"
 PURPLE = "#8E44AD"; ORANGE = "#E67E22"
-GLASS = "#101828AA"
+GLASS = "#101828CC"
+SPACING = 8
 
 PLAYER_POOL = [] # List of players to compare
 
@@ -49,8 +50,12 @@ def _sparkline(values: list[float], color: str, height: int = 60) -> ft.Containe
         clip_behavior=ft.ClipBehavior.HARD_EDGE,
     )
 
-
 def _metric_card(title: str, value: str, sub: str, color: str, points: list[float]) -> ft.Container:
+    def on_hover(e):
+        e.control.scale = 1.02 if e.data == "true" else 1.0
+        e.control.border = ft.Border.all(1, GOLD if e.data == "true" else BORDER)
+        e.control.update()
+
     return ft.Container(
         content=ft.Column([
             ft.Row([
@@ -66,7 +71,9 @@ def _metric_card(title: str, value: str, sub: str, color: str, points: list[floa
         bgcolor=GLASS, border_radius=15,
         padding=20, border=ft.Border.all(1, BORDER),
         expand=True,
-        shadow=ft.BoxShadow(spread_radius=0, blur_radius=15, color="#00000022")
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=15, color="#00000022"),
+        on_hover=on_hover,
+        animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
     )
 
 
@@ -124,12 +131,11 @@ def _champion_table(champs: list[str], values: list[float], color_fn) -> ft.Cont
 
 def build_analytics(page: ft.Page, navigate, initial_benchmark=None) -> ft.Control:
     content_ref = ft.Ref[ft.Column]()
-    search_ref  = ft.Ref[ft.Column]() # Changed to Column to hold search + tags
     input_ref   = ft.Ref[ft.TextField]()
     spinner_ref = ft.Ref[ft.ProgressRing]()
     status_ref  = ft.Ref[ft.Text]()
     
-    selected_players = [] # Local state for comparison
+    selected_players = []
 
     # Demo dataset
     wr_points   = [48, 51, 49, 53, 55, 52, 58, 56, 60, 57, 61, 63]
@@ -244,16 +250,16 @@ def build_analytics(page: ft.Page, navigate, initial_benchmark=None) -> ft.Contr
             cols.append(
                 ft.Container(
                     content=ft.Column([
-                        ft.Text(p['name'], size=16, weight="bold", color=GOLD),
+                         ft.Text(p['name'], size=16, weight=ft.FontWeight.BOLD, color=GOLD),
                         ft.Divider(color=BORDER),
                         ft.Text(f"WR: {p['wr']}%", color=wr_color(p['wr'])),
                         ft.Text(f"KDA: {p['kda']}", color=CYAN),
                         ft.Text(f"CS: {p['cs']}", color=GOLD),
                         ft.Container(height=10),
                         ft.Text("POWER SCORE", size=10, color=MUTED),
-                        ft.Text(str(score), size=32, weight="bold", color=PURPLE),
+                         ft.Text(str(score), size=32, weight=ft.FontWeight.BOLD, color=PURPLE),
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-                    bgcolor=GLASS, padding=24, border_radius=20, border=ft.border.all(1, BORDER),
+                    bgcolor=GLASS, padding=24, border_radius=20, border=ft.Border.all(1, BORDER),
                     expand=True,
                     shadow=ft.BoxShadow(spread_radius=0, blur_radius=20, color="#00000033"),
                     blur=10
@@ -289,8 +295,8 @@ def build_analytics(page: ft.Page, navigate, initial_benchmark=None) -> ft.Contr
 
         content_ref.current.controls = [
             ft.Row([
-                ft.Text("📊 Benchmark Comparison", size=22, weight="bold", color=GOLD),
-                ft.ElevatedButton("Reset", icon=ft.icons.REPLAY, on_click=lambda _: reset_comparison())
+                 ft.Text("📊 Benchmark Comparison", size=22, weight=ft.FontWeight.BOLD, color=GOLD),
+                ft.ElevatedButton("Reset", icon=ft.Icons.REPLAY, on_click=lambda _: reset_comparison())
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Text(f"Comparazione diretta tra {len(selected_players)} profili", color=MUTED),
             ft.Container(height=20),
@@ -330,15 +336,15 @@ def build_analytics(page: ft.Page, navigate, initial_benchmark=None) -> ft.Contr
             ft.Row([
                 ft.TextField(
                     ref=input_ref,
-                    hint_text="Nome Summoner o Pro...",
-                    prefix_icon="analytics",
+                     hint_text="Nome Summoner o Pro...",
+                     prefix_icon=ft.Icons.ANALYTICS,
                     bgcolor=CARD, border_radius=10,
                     border_color=BORDER, focused_border_color=CYAN,
                     color=TEXT, hint_style=ft.TextStyle(color=MUTED),
                     on_submit=do_load, expand=True,
                 ),
                 ft.ElevatedButton(
-                    "Aggiungi al Benchmark", icon=ft.icons.ADD_CHART, on_click=do_load,
+                     "Aggiungi al Benchmark", icon=ft.Icons.ADD_CHART, on_click=do_load,
                     style=ft.ButtonStyle(
                         bgcolor=CYAN, color="#000",
                         shape=ft.RoundedRectangleBorder(radius=10),

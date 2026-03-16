@@ -18,8 +18,9 @@ RED      = "#FF4455"
 TEXT     = "#ECF0F6"
 MUTED    = "#667A99"
 BORDER   = "#1E2D47"
-GLASS    = "#101828AA"
+GLASS    = "#101828CC"
 ROSETTE  = "#C89B3C33"
+SPACING  = 8
 
 
 def _stat_card(icon: str, label: str, value: str, color: str = GOLD) -> ft.Container:
@@ -27,39 +28,44 @@ def _stat_card(icon: str, label: str, value: str, color: str = GOLD) -> ft.Conta
         content=ft.Column([
             ft.Text(icon, size=32),
             ft.Text(value, size=24, weight=ft.FontWeight.BOLD, color=color),
-            ft.Text(label.upper(), size=9, weight="bold", color=MUTED, letter_spacing=1),
-        ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+             ft.Text(label.upper(), weight=ft.FontWeight.BOLD, color=MUTED, style=ft.TextStyle(size=9, letter_spacing=1)),
+        ], spacing=SPACING/2, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
         bgcolor=GLASS,
         border_radius=18,
-        padding=ft.Padding.symmetric(vertical=24, horizontal=24),
+        padding=ft.Padding.symmetric(vertical=SPACING*3, horizontal=SPACING*3),
         border=ft.Border.all(1, BORDER),
         expand=True,
-        shadow=ft.BoxShadow(spread_radius=0, blur_radius=15, color="#00000022")
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=15, color="#00000022"),
+        animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
     )
 
 
 def _quick_action(icon: str, label: str, color: str, on_click=None) -> ft.Container:
+    def on_hover(e):
+        e.control.bgcolor = f"{SURFACE}BB" if e.data == "true" else GLASS
+        e.control.scale = 1.02 if e.data == "true" else 1.0
+        e.control.update()
+
     return ft.Container(
         content=ft.Row([
             ft.Row([
                 ft.Container(
                     content=ft.Text(icon, size=18),
                     width=36, height=36, bgcolor=f"{color}15", border_radius=10,
-                    alignment=ft.alignment.center
+                    alignment=ft.Alignment.CENTER
                 ),
                 ft.Text(label, size=14, color=TEXT, weight=ft.FontWeight.W_500),
-            ], spacing=12),
+            ], spacing=SPACING*1.5),
             ft.Icon("arrow_forward_ios", size=12, color=MUTED),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         bgcolor=GLASS,
         border_radius=14,
-        padding=ft.Padding.symmetric(vertical=12, horizontal=16),
+        padding=ft.Padding.symmetric(vertical=SPACING*1.5, horizontal=SPACING*2),
         border=ft.Border.all(1, BORDER),
         on_click=on_click,
-        on_hover=lambda e: setattr(e.control, "bgcolor",
-            f"{SURFACE}99" if e.data == "true" else GLASS) or (e.control.update() if e.control.page else None),
+        on_hover=on_hover,
         ink=True,
-        animate=ft.animation.Animation(250, ft.AnimationCurve.EASE_OUT)
+        animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
     )
 
 
@@ -77,7 +83,7 @@ def build_dashboard(page: ft.Page, navigate) -> ft.Control:
             # ── Header ──────────────────────────────────────────────────────
             ft.Container(
                 content=ft.Column([
-                    ft.Text("Guide.Analyst", size=42, weight="bold",
+                    ft.Text("Guide.Analyst", size=42, weight=ft.FontWeight.BOLD,
                             color=GOLD, font_family="Inter"),
                     ft.Text("Professional League of Legends Analytics Suite",
                             size=16, color=MUTED),

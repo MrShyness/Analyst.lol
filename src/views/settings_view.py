@@ -11,7 +11,9 @@ from core.env_analyzer import scan_env, test_service, KNOWN_SERVICES
 from core.riot_api import REGIONS
 
 TEXT = "#ECF0F6"; MUTED = "#667A99"; BORDER = "#1E2D47"
-GLASS = "#101828AA"
+GLASS = "#101828CC"
+GOLD = "#C89B3C"; CYAN = "#00C8FF"; GREEN = "#00D4A0"; RED = "#FF4455"; CARD2 = "#1E2A40"
+SPACING = 8
 
 STATUS_COLOR = {"unknown": MUTED, "testing": CYAN, "ok": GREEN, "error": RED}
 STATUS_ICON  = {"unknown": "⬤", "testing": "⟳", "ok": "✓", "error": "✗"}
@@ -82,6 +84,11 @@ def build_settings(page: ft.Page, navigate) -> ft.Control:
             threading.Thread(target=_run, daemon=True).start()
 
         has_test = svc.get("test_fn") is not None
+        def on_hover(e):
+            e.control.scale = 1.02 if e.data == "true" else 1.0
+            e.control.border = ft.Border.all(1, GOLD if e.data == "true" else f"{svc_color}30")
+            e.control.update()
+
         return ft.Container(
             content=ft.Column([
                 ft.Row([
@@ -128,7 +135,9 @@ def build_settings(page: ft.Page, navigate) -> ft.Control:
             bgcolor=GLASS, border_radius=18,
             padding=20, border=ft.Border.all(1, f"{svc_color}30"),
             margin=ft.Margin.only(bottom=10),
-            shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color="#00000022")
+            shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color="#00000022"),
+            on_hover=on_hover,
+            animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
         )
 
     def _rebuild_services():

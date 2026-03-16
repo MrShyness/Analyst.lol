@@ -17,6 +17,8 @@ RED     = "#FF4455"
 TEXT    = "#ECF0F6"
 MUTED   = "#667A99"
 BORDER  = "#1E2D47"
+GLASS   = "#101828CC"
+SPACING = 8
 
 MEMORY_FILE = "core/session_memory.json"
 
@@ -82,12 +84,12 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
         mem_col.current.controls = [
             ft.Container(
                 content=ft.Column([
-                    ft.Text(f"PLAYER: {m.get('player')}", size=10, weight="bold", color=MUTED),
+                    ft.Text(f"PLAYER: {m.get('player')}", size=10, weight=ft.FontWeight.BOLD, color=MUTED),
                     ft.Text(f"{m.get('old_acc')} → {m.get('new_acc')}", size=12, color=TEXT),
                     ft.Text(f"Sources: {', '.join(m.get('sources', []))}", size=9, color=MUTED),
                     ft.Text(f"Score: {m.get('score')} | {m.get('status')}", size=10, color=CYAN if m.get('status')=="AUTO_UPDATED" else GOLD),
                 ], spacing=2),
-                padding=10, border=ft.border.all(1, BORDER), border_radius=8, bgcolor=f"{SURFACE}50"
+                padding=10, border=ft.Border.all(1, BORDER), border_radius=8, bgcolor=f"{SURFACE}50"
             ) for m in memory[-10:] # Ultimi 10
         ]
 
@@ -95,7 +97,7 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
         proj_rows = []
         for sect, details in project.items():
             if isinstance(details, dict):
-                proj_rows.append(ft.Text(sect.replace("_", " ").upper(), size=11, weight="bold", color=GOLD))
+                proj_rows.append(ft.Text(sect.replace("_", " ").upper(), size=11, weight=ft.FontWeight.BOLD, color=GOLD))
                 for k, v in details.items():
                     if isinstance(v, dict): continue # Salta nested per ora
                     proj_rows.append(
@@ -112,28 +114,36 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
 
     # --- UI Components ---
     def _stat_box(ref, label):
+        def on_hover(e):
+            e.control.scale = 1.05 if e.data == "true" else 1.0
+            e.control.border = ft.Border.all(1, GOLD if e.data == "true" else BORDER)
+            e.control.update()
+
         return ft.Container(
             content=ft.Column([
-                ft.Text(ref=ref, value="0", size=24, weight="bold", color=GOLD),
+                ft.Text(ref=ref, value="0", size=24, weight=ft.FontWeight.BOLD, color=GOLD),
                 ft.Text(label, size=10, color=MUTED),
-            ], spacing=1, horizontal_alignment="center"),
-            bgcolor=CARD, padding=15, border_radius=10, border=ft.border.all(1, BORDER), expand=True
+             ], spacing=1, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+            bgcolor=GLASS, padding=15, border_radius=12, border=ft.Border.all(1, BORDER), 
+            expand=True,
+            on_hover=on_hover,
+            animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
         )
 
     header = ft.Row([
-        ft.Text("🧠 Agentic Console", size=28, weight="bold", color=GOLD),
+            ft.Text("🧠 Agentic Console", size=28, weight=ft.FontWeight.BOLD, color=GOLD),
         ft.Container(expand=True),
         ft.ElevatedButton(
             "Deep Search Sync",
-            icon=ft.icons.STARS,
+            icon=ft.Icons.STAR,
             on_click=start_deep_sync,
             style=ft.ButtonStyle(
                 color=GOLD,
                 bgcolor=f"{GOLD}10",
-                side={"": ft.BorderSide(1, f"{GOLD}40")}
+                side={ft.ControlState.DEFAULT: ft.BorderSide(1, f"{GOLD}40")}
             )
         ),
-        ft.ElevatedButton("Ricarica", icon=ft.icons.REFRESH, on_click=refresh_ui, 
+        ft.ElevatedButton("Ricarica", icon=ft.Icons.REFRESH, on_click=refresh_ui, 
                           style=ft.ButtonStyle(color=GOLD, bgcolor="transparent"))
     ], spacing=10)
 
@@ -154,8 +164,8 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
     console_panel = ft.Container(
         content=ft.Column([
             ft.Row([
-                ft.Text("SYSTEM LOGS", size=12, weight="bold", color=MUTED, expand=True),
-                ft.IconButton(ft.icons.CLEANING_SERVICES, on_click=lambda _: chat_col.current.controls.clear() or page.update(), icon_size=16)
+                ft.Text("SYSTEM LOGS", size=12, weight=ft.FontWeight.BOLD, color=MUTED, expand=True),
+                ft.IconButton(ft.Icons.CLEANING_SERVICES, on_click=lambda _: chat_col.current.controls.clear() or page.update(), icon_size=16)
             ]),
             ft.Column(ref=chat_col, controls=[
                 ft.Text("> Inizializzazione Basal Memory...", color=CYAN, size=12, font_family="monospace"),
@@ -164,26 +174,29 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
             ], spacing=5, scroll=ft.ScrollMode.AUTO, expand=True),
             ft.Row([
                 search_input,
-                ft.IconButton(ft.icons.SEND, on_click=start_deep_sync, icon_color=GOLD)
+                ft.IconButton(ft.Icons.SEND, on_click=start_deep_sync, icon_color=GOLD)
             ])
         ], spacing=10, expand=True),
-        bgcolor=GLASS, padding=20, border_radius=12, border=ft.border.all(1, BORDER), expand=2
+        bgcolor=GLASS, padding=20, border_radius=16, border=ft.Border.all(1, BORDER), expand=2,
+        blur=20
     )
 
     memory_panel = ft.Container(
         content=ft.Column([
-            ft.Text("EPISODIC MEMORY (SYNC)", size=12, weight="bold", color=MUTED),
+            ft.Text("EPISODIC MEMORY (SYNC)", size=12, weight=ft.FontWeight.BOLD, color=MUTED),
             ft.Column(ref=mem_col, spacing=8, scroll=ft.ScrollMode.AUTO, expand=True),
         ], spacing=10, expand=True),
-        bgcolor=GLASS, padding=20, border_radius=12, border=ft.border.all(1, BORDER), expand=1
+        bgcolor=GLASS, padding=20, border_radius=16, border=ft.border.all(1, BORDER), expand=1,
+        blur=20
     )
 
     project_panel = ft.Container(
         content=ft.Column([
-            ft.Text("PROJECT STATE / ROADMAP", size=12, weight="bold", color=MUTED),
+            ft.Text("PROJECT STATE / ROADMAP", size=12, weight=ft.FontWeight.BOLD, color=MUTED),
             ft.Column(ref=proj_col, spacing=8, scroll=ft.ScrollMode.AUTO, expand=True),
         ], spacing=10, expand=True),
-        bgcolor=GLASS, padding=20, border_radius=12, border=ft.border.all(1, BORDER), expand=1
+        bgcolor=GLASS, padding=20, border_radius=16, border=ft.border.all(1, BORDER), expand=1,
+        blur=20
     )
 
     layout = ft.Column([

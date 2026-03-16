@@ -9,7 +9,9 @@ from core.riot_api import riot, RiotAPIError, TIER_COLORS, REGIONS, get_profile_
 from core.config import get_riot_region
 
 TEXT = "#ECF0F6"; MUTED = "#667A99"; BORDER = "#1E2D47"
-GLASS = "#101828AA"
+GLASS = "#101828CC"
+GOLD = "#C89B3C"; CYAN = "#00C8FF"; GREEN = "#00D4A0"; RED = "#FF4455"; CARD = "#172135"; CARD2 = "#1E2A40"
+SPACING = 8
 
 
 def _rank_badge(entry: dict | None) -> ft.Container:
@@ -53,6 +55,11 @@ def _profile_card(profile: dict) -> ft.Container:
         for m in mastery[:5]
     ], spacing=4, wrap=True)
 
+    def on_hover(e):
+        e.control.scale = 1.02 if e.data == "true" else 1.0
+        e.control.border = ft.Border.all(1, GOLD if e.data == "true" else BORDER)
+        e.control.update()
+
     return ft.Container(
         content=ft.Column([
             # Header
@@ -60,7 +67,7 @@ def _profile_card(profile: dict) -> ft.Container:
                 ft.Container(
                     content=ft.Image(
                         src=get_profile_icon_url(profile.get("profileIconId", 0)),
-                        width=52, height=52, fit=ft.ImageFit.COVER,
+                        width=52, height=52, fit=ft.BoxFit.COVER,
                         border_radius=26,
                     ),
                     width=52, height=52, bgcolor=f"{GOLD}20",
@@ -98,7 +105,8 @@ def _profile_card(profile: dict) -> ft.Container:
         border=ft.Border.all(1, BORDER),
         margin=ft.Margin.only(bottom=15),
         shadow=ft.BoxShadow(spread_radius=0, blur_radius=20, color="#00000033"),
-        animate=ft.animation.Animation(400, ft.AnimationCurve.EASE_OUT)
+        on_hover=on_hover,
+        animate=ft.Animation(150, ft.AnimationCurve.EASE_OUT)
     )
 
 
