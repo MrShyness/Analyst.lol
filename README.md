@@ -74,3 +74,4 @@ Analyst.lol/
 *Built with ❤️ for LoL players*
 "# Analyst.lol" 
 "# Analyst.lol" 
+"# Analyst.lol" 
