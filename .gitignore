@@ -1,22 +1,14 @@
-.env
+# Python
 __pycache__/
-*.pyc
-.flet/
-.DS_Store
-build/
-dist/
-*.log
-.vscode/
-.idea/
-.gemini/
-.agent/
-.agents/
-.agent_workflow/
-brain/
-*.webp
-*.png
-*.jpg
-*.jpeg
-*.mp4
-*.MOV
-*.gif
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# Analyst specific
+.deps_installed
+logs/
+data/*.json
+!data/static/*.json

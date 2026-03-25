@@ -17,6 +17,13 @@ ROLE_COLORS = {
     "Bot": "#D4A05A", "Support": "#9B59B6",
 }
 
+def _player_hover(e):
+    e.control.bgcolor = f"{SURFACE}99" if e.data == "true" else GLASS
+    e.control.border = ft.Border.all(1, GOLD if e.data == "true" else BORDER)
+    e.control.scale = 1.01 if e.data == "true" else 1.0
+    if e.control.page:
+        e.control.update()
+
 def build_pro_players(page: ft.Page, navigate) -> ft.Control:
     filtered = ft.Ref[ft.Column]()
     search_val = ft.Ref[ft.TextField]()
@@ -100,8 +107,7 @@ def build_pro_players(page: ft.Page, navigate) -> ft.Control:
             padding=20,
             border=ft.Border.all(1, BORDER),
             shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color="#00000022"),
-            on_hover=lambda e: setattr(e.control, "bgcolor",
-                f"{SURFACE}99" if e.data == "true" else GLASS) or (e.control.update() if e.control.page else None),
+            on_hover=lambda e: _player_hover(e),
             animate=ft.Animation(300, ft.AnimationCurve.EASE_OUT)
         )
 

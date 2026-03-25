@@ -126,14 +126,19 @@ def build_summoner_search(page: ft.Page, navigate, initial_name: str = None) -> 
     def _do_search(name: str):
         set_loading(True)
         results_ref.current.controls.clear()
-        status_ref.current.value = ""
+        status_ref.current.value = "🔍 Ricerca in corso..."
+        status_ref.current.color = CYAN
+        page.update()
         try:
             profile = riot.get_full_profile(name.strip())
             results_ref.current.controls.append(_profile_card(profile))
             status_ref.current.value = f"✅ Profilo caricato per '{profile['name']}'"
             status_ref.current.color = GREEN
         except RiotAPIError as e:
-            status_ref.current.value = f"❌ {e}"
+            if e.status_code == 403:
+                status_ref.current.value = "❌ API Key non valida o scaduta - Generane una nuova su developer.riotgames.com"
+            else:
+                status_ref.current.value = f"❌ {e}"
             status_ref.current.color = RED
         except Exception as e:
             status_ref.current.value = f"⚠️ Errore imprevisto: {e}"
@@ -302,7 +307,7 @@ def build_summoner_search(page: ft.Page, navigate, initial_name: str = None) -> 
 
     if initial_name:
         input_ref.current.value = initial_name
-        # Add a delay to ensure UI is ready before background search starts
-        threading.Timer(0.5, lambda: do_search()).start()
+        # Delay search to ensure UI refs are ready
+        threading.Timer(0.5, do_search).start()
 
     return search_ui

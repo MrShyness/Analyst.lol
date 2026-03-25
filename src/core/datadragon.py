@@ -44,8 +44,18 @@ class DataDragonService:
             "utility": "utility",
             "fill": "utility"
         }
+        dd_role_map = {
+            "top": "Top",
+            "jungle": "Jungle",
+            "mid": "Middle",
+            "middle": "Middle",
+            "bot": "Bottom",
+            "bottom": "Bottom",
+            "utility": "Utility",
+        }
         role = role_map.get(role.lower(), "utility")
-        return f"{self.BASE_URL}/{version}/img/position/{role.capitalize()}.png"
+        dd_role = dd_role_map.get(role, role.capitalize())
+        return f"{self.BASE_URL}/{version}/img/position/{dd_role}.png"
     
     def get_champion_square_url(self, champion_id: str, version: Optional[str] = None) -> str:
         """Return champion square portrait URL"""

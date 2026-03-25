@@ -186,7 +186,7 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
             ft.Text("EPISODIC MEMORY (SYNC)", size=12, weight=ft.FontWeight.BOLD, color=MUTED),
             ft.Column(ref=mem_col, spacing=8, scroll=ft.ScrollMode.AUTO, expand=True),
         ], spacing=10, expand=True),
-        bgcolor=GLASS, padding=20, border_radius=16, border=ft.border.all(1, BORDER), expand=1,
+        bgcolor=GLASS, padding=20, border_radius=16, border=ft.Border.all(1, BORDER), expand=1,
         blur=20
     )
 
@@ -195,7 +195,7 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
             ft.Text("PROJECT STATE / ROADMAP", size=12, weight=ft.FontWeight.BOLD, color=MUTED),
             ft.Column(ref=proj_col, spacing=8, scroll=ft.ScrollMode.AUTO, expand=True),
         ], spacing=10, expand=True),
-        bgcolor=GLASS, padding=20, border_radius=16, border=ft.border.all(1, BORDER), expand=1,
+        bgcolor=GLASS, padding=20, border_radius=16, border=ft.Border.all(1, BORDER), expand=1,
         blur=20
     )
 
@@ -211,9 +211,8 @@ def build_agentic_console(page: ft.Page, navigate, **kwargs) -> ft.Control:
     # Initial Load
     ft.app_bar = None # Clear any app bar
     
-    # Auto-refresh on build
-    async def _refresh():
-        refresh_ui()
-    page.run_task(_refresh)
+    # Auto-refresh on build (use threading to avoid async issues)
+    import threading
+    threading.Timer(0.1, refresh_ui).start()
 
     return ft.Container(content=layout, padding=30, expand=True)

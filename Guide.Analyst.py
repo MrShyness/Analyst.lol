@@ -11,8 +11,8 @@ if __name__ == "__main__":
         from app import main
         import flet as ft
         
-        # Avvio dell'app usando ft.app(target=main) per massima stabilità
-        ft.app(target=main)
+        # Avvio dell'app usando ft.run() (versione moderna)
+        ft.run(main)
     except ImportError as e:
         print(f"[ERRORE] Impossibile trovare i moduli in src/: {e}")
         input("Premi Invio per uscire...")

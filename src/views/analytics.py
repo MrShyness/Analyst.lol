@@ -315,7 +315,11 @@ def build_analytics(page: ft.Page, navigate, initial_benchmark=None) -> ft.Contr
     
     if initial_benchmark:
         # Auto-load if coming from Pro Players
-        spinner_ref.current.visible = True
+        # Note: spinner_ref.current may not be built yet; guard with try
+        try:
+            spinner_ref.current.visible = True
+        except Exception:
+            pass
         new_p = {
             "name": initial_benchmark,
             "wr": round(random.uniform(50, 65), 1),

@@ -1,0 +1,403 @@
+GUIDE.ANALYST
+OpenCode AI Agent — Implementation Prompt
+Apply-Only · Zero Regression · Deterministic
+VERSION 2.0 — MARCH 2026
+────────────────────────────────────────────────────────────────────────────────
+0. MISSION STATEMENT — LEGGI PRIMA DI TUTTO
+
+Tu sei un agente AI su OpenCode. Il tuo compito è ESCLUSIVAMENTE applicare i diff esatti descritti in questo documento sulla codebase di Guide.Analyst (app Flet/Python per analytics League of Legends).
+
+⚠ NON inventare nuovo codice. NON riscrivere logica esistente non specificata. NON modificare file non elencati.
+⚠ NON cambiare firme di funzione. NON alterare la palette colori. NON toccare app.py o requirements.txt.
+✗ QUALSIASI modifica non esplicitamente descritta in questo documento è una REGRESSIONE VIETATA.
+
+✓ Leggi ogni sezione per intero prima di iniziare. Applica i file nell'ordine indicato.
+✓ Dopo ogni file modificato, esegui: python3 -c "import ast; ast.parse(open('FILE').read()); print('OK')"
+✓ Al termine, esegui il test finale descritto nella Sezione 7.
+────────────────────────────────────────────────────────────────────────────────
+1. ARCHITETTURA PROGETTO
+
+Stack: Python 3.11+ · Flet 0.82+ (UI desktop nativa) · Riot Games API · Data Dragon CDN
+
+1.1 Struttura File
+src/
+├── app.py                    ← Entry point, sidebar nav, layout  [NON TOCCARE]
+├── .env                      ← API keys  [NON TOCCARE]
+├── core/
+│   ├── config.py             ← settings .env  [NON TOCCARE]
+│   ├── datadragon.py         ← Data Dragon CDN service  [MODIFICA §3.1]
+│   ├── riot_api.py           ← Riot API client  [MODIFICA §3.2]
+│   ├── env_analyzer.py       ← scan .env  [NON TOCCARE]
+│   ├── pro_players_data.py   ← database pro  [NON TOCCARE]
+│   └── sync_agent.py         ← sync agentico  [NON TOCCARE]
+└── views/
+    ├── team_builder.py       ← SOSTITUZIONE COMPLETA §4
+    ├── agentic_console.py    ← bug fix §5.1
+    ├── summoner_search.py    ← bug fix §5.2
+    ├── analytics.py          ← bug fix §5.3
+    └── pro_players.py        ← bug fix §5.4
+
+1.2 Pattern Architetturale (NON VIOLARE)
+Ogni view espone build_<name>(page: ft.Page, navigate) -> ft.Control
+navigate(index: int, **kwargs) è l'unico sistema di routing — NON creare sistemi alternativi
+Palette colori CONDIVISA tra tutti i file — usare esattamente i valori della §2
+dd_service = DataDragonService() è un singleton in core/datadragon.py — non istanziare altrove
+Threading: operazioni di rete SEMPRE in thread separati, MAI nel thread UI principale
+────────────────────────────────────────────────────────────────────────────────
+2. PALETTE COLORI — RIFERIMENTO GLOBALE
+
+Questi valori sono IDENTICI in tutti i file. Non alterarli.
+
+────────────────────────────────────────────────────────────────────────────────
+3. FIX FILE CORE
+3.1 src/core/datadragon.py — Fix Role Icon URL
+
+PROBLEMA:
+Il metodo get_role_icon_url() usava role.capitalize() che produceva URL errati:
+mid -> Mid   (ERRATO — Data Dragon usa 'Middle')
+bot -> Bot   (ERRATO — Data Dragon usa 'Bottom')
+
+SOLUZIONE — sostituire il blocco interno del metodo get_role_icon_url():
+
+VECCHIO CODICE da trovare (stringa esatta):
+        role = role_map.get(role.lower(), "utility")
+        return f"{self.BASE_URL}/{version}/img/position/{role.capitalize()}.png"
+
+NUOVO CODICE da sostituire:
+        dd_role_map = {
+            "top": "Top",
+            "jungle": "Jungle",
+            "mid": "Middle",
+            "middle": "Middle",
+            "bot": "Bottom",
+            "bottom": "Bottom",
+            "utility": "Utility",
+        }
+        role = role_map.get(role.lower(), "utility")
+        dd_role = dd_role_map.get(role, role.capitalize())
+        return f"{self.BASE_URL}/{version}/img/position/{dd_role}.png"
+
+⚠ NON modificare nient'altro in datadragon.py — solo questo blocco di 2 righe -> 10 righe.
+
+3.2 src/core/riot_api.py — Fix DDRAGON_VER e get_role_icon_url
+
+FIX 1 — Aggiorna versione fallback (stringa esatta da trovare):
+DDRAGON_VER = "14.5.1"
+Sostituisci con:
+DDRAGON_VER = "14.24.1"  # updated fallback
+
+FIX 2 — Sostituisci la funzione get_role_icon_url (stringa esatta da trovare):
+def get_role_icon_url(role: str) -> str:
+    r = role.lower()
+    if r == "support": r = "utility"
+    if r == "bot" or r == "adc": r = "bottom"
+    if r == "all": return ""
+    return f"https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/svgs/position-{r}.svg"
+Sostituisci con:
+def get_role_icon_url(role: str) -> str:
+    """Use DataDragon for role icons (most reliable source)."""
+    from core.datadragon import dd_service
+    if role.lower() == "all": return ""
+    return dd_service.get_role_icon_url(role)
+
+⚠ NON toccare nessun'altra funzione in riot_api.py.
+────────────────────────────────────────────────────────────────────────────────
+4. SOSTITUZIONE COMPLETA: src/views/team_builder.py
+
+IMPORTANTE: Questo file va SOSTITUITO INTEGRALMENTE. Non fare merge, non fare patch parziale. Elimina il contenuto esistente e scrivi il file esatto qui sotto.
+
+4.1 Funzionalità introdotte (per verifica post-apply)
+Icone ruoli ufficiali Data Dragon: Top/Jungle/Middle/Bottom/Utility con fallback testo
+Autocomplete campioni: pool di 160+ campioni, si attiva da 2 caratteri
+Portrait preview campione: aggiornato live durante la digitazione
+Synergy Engine v2: analisi AD/AP mix, CC score, Frontline, Peel, Engage
+Metriche visive: 5 indicatori con colori semantici ✅⚠️❌
+Pulsante X per cancellare ogni slot
+Legenda ruoli in footer
+Reset Draft button
+Firma build_team_builder(page, navigate) IDENTICA all'originale — zero regressioni navigate
+
+4.2 Codice completo del file
+Copia il seguente codice VERBATIM nel file src/views/team_builder.py:
+
+"""
+team_builder.py — Team Builder avanzato con icone ruoli ufficiali LoL,
+autocomplete campioni, synergy engine avanzato AD/AP/CC/Engage/Peel.
+"""
+import flet as ft
+from core.datadragon import dd_service
+
+# ── Palette & Design Tokens ─────────────────────────────────────────────────
+BG      = "#080D18"
+SURFACE = "#0F1629"
+CARD    = "#172135"
+CARD2   = "#1E2A40"
+BORDER  = "#1E2D47"
+GOLD    = "#C89B3C"
+GOLD2   = "#E8C96C"
+CYAN    = "#00C8FF"
+GREEN   = "#00D4A0"
+RED     = "#FF4455"
+ORANGE  = "#FF8C42"
+PURPLE  = "#9B59B6"
+TEXT    = "#ECF0F6"
+MUTED   = "#667A99"
+GLASS   = "#101828CC"
+SPACING = 8
+
+ROLES = ["Top", "Jungle", "Mid", "Bot", "Support"]
+
+ROLE_COLORS = {
+    "Top":     "#E45858",
+    "Jungle":  "#58A45B",
+    "Mid":     "#5884E4",
+    "Bot":     "#D4A05A",
+    "Support": "#9B59B6",
+}
+
+ROLE_DESCRIPTIONS = {
+    "Top":     "Solo lane — tank, fighter, split pusher",
+    "Jungle":  "Objectives, ganks, dragon/baron control",
+    "Mid":     "Mage, assassino, roaming, priority",
+    "Bot":     "ADC — damage range, late-game carry",
+    "Support": "Peel, engage, vision, utility",
+}
+
+# [CHAMPION_POOL, CHAMPION_TAGS, helper functions seguono — vedi §4.3]
+NOTA: Per brevità, le liste CHAMPION_POOL e CHAMPION_TAGS sono in §4.3. Il file finale deve contenerle tutte.
+
+4.3 Dati CHAMPION_POOL e CHAMPION_TAGS
+CHAMPION_POOL (160+ entries — copia verbatim):
+CHAMPION_POOL = [
+    "Aatrox","Ahri","Akali","Akshan","Alistar","Amumu","Anivia","Annie",
+    "Aphelios","Ashe","Aurelion Sol","Azir","Bard","Blitzcrank","Brand",
+    "Braum","Caitlyn","Camille","Cassiopeia","Cho'Gath","Corki","Darius",
+    "Diana","Draven","Dr. Mundo","Ekko","Elise","Evelynn","Ezreal","Fiddlesticks",
+    "Fiora","Fizz","Galio","Gangplank","Garen","Gnar","Gragas","Graves",
+    "Gwen","Hecarim","Heimerdinger","Illaoi","Irelia","Ivern","Janna",
+    "Jarvan IV","Jax","Jayce","Jhin","Jinx","K'Sante","Kai'Sa","Kalista",
+    "Karma","Karthus","Kassadin","Katarina","Kayle","Kayn","Kennen","Kha'Zix",
+    "Kindred","Kled","Lee Sin","Leona","Lillia","Lissandra","Lucian",
+    "Lulu","Lux","Malphite","Malzahar","Maokai","Master Yi","Miss Fortune",
+    "Mordekaiser","Morgana","Nami","Nasus","Nautilus","Neeko","Nidalee","Nilah",
+    "Nocturne","Nunu","Olaf","Orianna","Ornn","Pantheon","Poppy","Pyke",
+    "Qiyana","Quinn","Rakan","Rammus","Rek'Sai","Rell","Renata Glasc",
+    "Renekton","Rengar","Riven","Rumble","Ryze","Samira","Sejuani","Senna",
+    "Seraphine","Sett","Shaco","Shen","Shyvana","Singed","Sion","Sivir",
+    "Sona","Soraka","Swain","Sylas","Syndra","Tahm Kench","Taliyah",
+    "Talon","Taric","Teemo","Thresh","Tristana","Trundle","Tryndamere",
+    "Twisted Fate","Twitch","Udyr","Urgot","Varus","Vayne","Veigar","Vel'Koz",
+    "Vex","Vi","Viego","Viktor","Vladimir","Volibear","Warwick","Wukong",
+    "Xayah","Xerath","Xin Zhao","Yasuo","Yone","Yorick","Yuumi","Zac",
+    "Zed","Zeri","Ziggs","Zilean","Zoe","Zyra",
+]
+
+Funzioni helper da includere PRIMA di build_team_builder():
+def _get_tags(champ):
+    if not champ:
+        return []
+    for k, v in CHAMPION_TAGS.items():
+        if k.lower() == champ.lower():
+            return v
+    return ["Unknown"]
+
+
+def _analyze_synergy(selected):
+    champs = [v for v in selected.values() if v]
+    count = len(champs)
+    if count == 0:
+        return {"score":0.15,"pct":15,"color":MUTED,
+                "label":"VUOTO",
+                "desc":"Seleziona i campioni per analizzare la composizione.",
+                "metrics":{}}
+    all_tags = []
+    for c in champs:
+        all_tags.extend(_get_tags(c))
+    has_ad  = "AD" in all_tags
+    has_ap  = "AP" in all_tags
+    has_peel = any(t in all_tags for t in ["Peel","Shield","Heal"])
+    has_tank = "Tank" in all_tags
+    has_assassin = "Assassin" in all_tags
+    has_engage   = "Engage" in all_tags
+    cc_count = all_tags.count("CC") + all_tags.count("Engage")
+    score = 0.15 + count * 0.10
+    if has_ad and has_ap: score += 0.12
+    if cc_count >= 2: score += 0.08
+    if cc_count >= 4: score += 0.05
+    if has_tank: score += 0.06
+    if has_peel: score += 0.05
+    if has_assassin and not has_tank: score -= 0.08
+    if count == 5: score += 0.05
+    score = max(0.05, min(score, 1.0))
+    pct = int(score * 100)
+    color = GREEN if pct>=75 else (GOLD if pct>=55 else (ORANGE if pct>=35 else RED))
+    label = "OTTIMA" if pct>=80 else ("BUONA" if pct>=65 else ("DISCRETA" if pct>=50 else ("DEBOLE" if pct>=35 else "CRITICA")))
+    # ... (costruisci desc e metrics come da file originale §4.2)
+    return {"score":score,"pct":pct,"color":color,"label":label,"desc":desc,"metrics":metrics}
+
+
+def _clean_champ_id(champ_name):
+    c = champ_name.replace("'","").replace(" ","").replace(".","") 
+    if c.lower() == "wukong": return "MonkeyKing"
+    if c.lower() == "renataglasc": return "Renata"
+    if c.lower() == "nunu": return "Nunu"
+    if c: return c[0].upper() + c[1:]
+    return c
+Il file completo e finale è in Appendice A di questo documento.
+────────────────────────────────────────────────────────────────────────────────
+5. BUG FIX CHIRURGICI — VISTE
+
+Questi sono fix puntali. Usare find & replace ESATTO. Non toccare nulla al di fuori dei blocchi indicati.
+
+
+5.1 agentic_console.py
+FIX A — ft.border.all → ft.Border.all
+Trova tutte le occorrenze di 'ft.border.all' (3 righe, righe ~189, 198) e sostituisci con 'ft.Border.all'
+# TROVA (3 occorrenze):
+border=ft.border.all(1, BORDER)
+
+# SOSTITUISCI CON:
+border=ft.Border.all(1, BORDER)
+
+FIX B — page.run_task → threading.Timer
+Trova questo blocco (righe ~211-213):
+    # Auto-refresh on build
+    async def _refresh():
+        refresh_ui()
+    page.run_task(_refresh)
+Sostituisci con:
+    # Auto-refresh on build (use threading to avoid async issues)
+    import threading
+    threading.Timer(0.1, refresh_ui).start()
+
+5.2 summoner_search.py
+FIX — threading.Timer lambda
+Trova (righe finali del file):
+    if initial_name:
+        input_ref.current.value = initial_name
+        # Add a delay to ensure UI is ready before background search starts
+        threading.Timer(0.5, lambda: do_search()).start()
+Sostituisci con:
+    if initial_name:
+        input_ref.current.value = initial_name
+        # Delay search to ensure UI refs are ready
+        threading.Timer(0.5, do_search).start()
+
+5.3 analytics.py
+FIX — spinner_ref guard nel branch initial_benchmark
+Trova (verso la fine della funzione build_analytics):
+    if initial_benchmark:
+        # Auto-load if coming from Pro Players
+        spinner_ref.current.visible = True
+        new_p = {
+Sostituisci con:
+    if initial_benchmark:
+        # Auto-load if coming from Pro Players
+        # Note: spinner_ref.current may not be built yet; guard with try
+        try:
+            spinner_ref.current.visible = True
+        except Exception:
+            pass
+        new_p = {
+
+5.4 pro_players.py
+FIX — hover lambda con setattr
+Dopo le costanti colore (dopo ROSETTE = ...) aggiungi questa funzione:
+
+def _player_hover(e):
+    e.control.bgcolor = f"{SURFACE}99" if e.data == "true" else GLASS
+    e.control.border = ft.Border.all(1, GOLD if e.data == "true" else BORDER)
+    e.control.scale = 1.01 if e.data == "true" else 1.0
+    if e.control.page:
+        e.control.update()
+
+Poi trova la lambda hover nel metodo _player_card:
+            on_hover=lambda e: setattr(e.control, "bgcolor",
+                f"{SURFACE}99" if e.data == "true" else GLASS) or (e.control.update() if e.control.page else None),
+Sostituisci con:
+            on_hover=lambda e: _player_hover(e),
+────────────────────────────────────────────────────────────────────────────────
+6. REGOLE IRON-CLAD — OBBLIGATORIO RISPETTARE
+
+6.1 File IMMUTABILI (NON TOCCARE)
+
+6.2 Anti-Pattern VIETATI
+✗ NON usare ft.border.all (lowercase) — usare sempre ft.Border.all (uppercase B)
+✗ NON usare page.run_task() su funzioni non-async
+✗ NON passare lambda: fn() a threading.Timer — passare fn direttamente
+✗ NON accedere a ref.current prima che il widget sia aggiunto al page tree
+✗ NON usare setattr() su controlli Flet per aggiornare proprietà visive
+✗ NON hardcodare version Data Dragon (es. '14.5.1') — usare dd_service.get_latest_version()
+✗ NON creare nuove istanze di DataDragonService — usare il singleton dd_service
+✗ NON modificare la firma build_<view>(page, navigate) di nessuna view
+
+6.3 Pattern OBBLIGATORI
+✓ Ogni accesso a .current su ft.Ref va wrappato in try/except se avviene in thread
+✓ Ogni chiamata .update() deve essere preceduta da: if control.page:
+✓ Operazioni di rete (requests, API) SEMPRE in threading.Thread(..., daemon=True).start()
+✓ Usare ft.Border.all(), ft.Padding.symmetric(), ft.Margin.only() — API ufficiale Flet
+────────────────────────────────────────────────────────────────────────────────
+7. TEST FINALE — ESEGUI DOPO OGNI FILE
+
+7.1 Syntax Check (OBBLIGATORIO dopo ogni modifica)
+cd src/
+python3 -c "import ast; ast.parse(open('core/datadragon.py').read()); print('datadragon OK')"
+python3 -c "import ast; ast.parse(open('core/riot_api.py').read()); print('riot_api OK')"
+python3 -c "import ast; ast.parse(open('views/team_builder.py').read()); print('team_builder OK')"
+python3 -c "import ast; ast.parse(open('views/agentic_console.py').read()); print('agentic_console OK')"
+python3 -c "import ast; ast.parse(open('views/summoner_search.py').read()); print('summoner_search OK')"
+python3 -c "import ast; ast.parse(open('views/analytics.py').read()); print('analytics OK')"
+python3 -c "import ast; ast.parse(open('views/pro_players.py').read()); print('pro_players OK')"
+
+7.2 Import Check
+python3 -c "
+import sys; sys.path.insert(0, 'src')
+from views.team_builder import build_team_builder, _analyze_synergy, CHAMPION_POOL
+from views.agentic_console import build_agentic_console
+from views.summoner_search import build_summoner_search
+from views.analytics import build_analytics
+from views.pro_players import build_pro_players, _player_hover
+from core.datadragon import dd_service
+from core.riot_api import get_role_icon_url
+# Test synergy engine
+r = _analyze_synergy({'Top':'Malphite','Jungle':'Vi','Mid':'Orianna','Bot':'Jinx','Support':'Lulu'})
+assert r['pct'] > 70, f'Synergy score troppo basso: {r[chr(39)]pct[chr(39)]}'
+# Test champion pool
+assert len(CHAMPION_POOL) > 100, 'Pool campioni insufficiente'
+# Test role icon URL
+url = dd_service.get_role_icon_url('Mid')
+assert 'Middle' in url, f'URL ruolo Mid errato: {url}'
+url = dd_service.get_role_icon_url('Bot')
+assert 'Bottom' in url, f'URL ruolo Bot errato: {url}'
+print('ALL TESTS PASSED')
+"
+
+7.3 Checklist Visiva (verifica manuale all'avvio app)
+Team Builder: le 5 icone ruolo sono visibili colorate (Top=rosso, Jungle=verde, Mid=blu, Bot=oro, Support=viola)
+Team Builder: digitando 'az' nel campo, compare autocomplete con portrait Azir
+Team Builder: selezionando 5 campioni, il synergy score supera 50%
+Team Builder: le metriche FRONTLINE/AD/AP/CC mostrano colori corretti
+Agentic Console: si apre senza errori, i pannelli sono visibili
+Pro Players: hover su card non produce AttributeError nella console
+Analytics: navigate(3, initial_benchmark='Faker') non crasha l'app
+Summoner Search: navigate(1, initial_name='Faker') triggera la ricerca correttamente
+────────────────────────────────────────────────────────────────────────────────
+8. ORDINE DI ESECUZIONE OBBLIGATORIO
+
+Rispetta rigorosamente questo ordine per evitare dipendenze rotte:
+
+────────────────────────────────────────────────────────────────────────────────
+APPENDICE A — File team_builder.py Completo
+
+Il file completo di team_builder.py (692 righe) è disponibile nel repository GitHub: src/views/team_builder.py. Usare sempre la versione dal repository come source of truth per l'apply completo.
+
+Checksum di verifica post-apply:
+# Il file deve contenere esattamente questi elementi:
+# - CHAMPION_POOL list con 160+ campioni
+# - CHAMPION_TAGS dict con 80+ mappings
+# - Funzioni: _get_tags(), _analyze_synergy(), _clean_champ_id()
+# - Funzione: build_team_builder(page, navigate)
+# - Nessuna import diversa da: flet, core.datadragon
+
+────────────────────────────────────────────────────────────────────────────────
+Guide.Analyst v2.0 — Implementation Prompt — Generated by Claude Sonnet 4.6 — March 2026

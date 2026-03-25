@@ -172,7 +172,7 @@ class RiotAPI:
 riot = RiotAPI()
 
 # ─── Assets ────────────────────────────────────────────────────────────────
-DDRAGON_VER = "14.5.1"
+DDRAGON_VER = "14.24.1"  # updated fallback
 
 def get_champion_icon_url(champion_name: str) -> str:
     clean_name = champion_name.replace(" ", "").replace("'", "")
@@ -188,8 +188,7 @@ def get_profile_icon_url(icon_id: int) -> str:
     return f"https://ddragon.leagueoflegends.com/cdn/{DDRAGON_VER}/img/profileicon/{icon_id}.png"
 
 def get_role_icon_url(role: str) -> str:
-    r = role.lower()
-    if r == "support": r = "utility"
-    if r == "bot" or r == "adc": r = "bottom"
-    if r == "all": return ""
-    return f"https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/svgs/position-{r}.svg"
+    """Use DataDragon for role icons (most reliable source)."""
+    from core.datadragon import dd_service
+    if role.lower() == "all": return ""
+    return dd_service.get_role_icon_url(role)

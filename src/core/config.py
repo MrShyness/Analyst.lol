@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv, set_key, dotenv_values
 
 BASE_DIR = Path(__file__).parent.parent
-ENV_FILE = BASE_DIR / ".env"
+ENV_FILE = BASE_DIR.parent / "Development_Files" / ".env"
 SETTINGS_FILE = BASE_DIR / "settings.json"
 
 
